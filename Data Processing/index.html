@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Processing</title>
+    <script src="https://unpkg.com/read-excel-file@5.x/bundle/read-excel-file.min.js"></script>
+</head>
+<style>
+    table{
+        border-spacing: 0px;
+    }
+    table, td,th, .deselected{
+        border-style: solid;
+        border-width: thin;
+        font-size: 12px;
+        cursor: pointer;
+        border-color: #333;
+    }
+    td, tr{
+        padding-left: 3px;
+
+    }
+    td:hover{
+        background-color: gray;
+    }
+    .selected-column{
+        border-color: rgb(71, 71, 255);
+        font-size: 13px;
+        border-width: 2px;
+        font-weight: 500;
+    }
+</style>
+<body>
+<input type="file" id="input" accept=".xlsx">
+
+<table id="excel-table">
+
+</table>
+
+
+
+
+<script>
+  var input = document.getElementById('input')
+  let table = document.getElementById("excel-table")
+
+
+  function getColNum(col){
+     
+
+        // console.log(col)
+        let cols = document.getElementsByName("column" + col)
+        // console.log(typeof(cols))
+
+        for (let x of cols.values()) {
+            let tag = x;
+            // check if cliked
+            if(tag.style.borderWidth == "2px"){
+                // console.log(tag);
+                tag.removeAttribute("class")
+                tag.setAttribute("class", "deselected")
+
+
+
+                let value = tag.textContent;
+                // console.log(value)
+            }else{
+                // console.log(tag);
+                tag.setAttribute("class", "selected-column")
+
+
+                // data
+                let value = tag.textContent;
+                // console.log(value)
+            }
+           
+
+        }
+      
+       
+    }
+
+  input.addEventListener('change', function() {
+    readXlsxFile(input.files[0]).then(function(rows) {
+        table.innerHTML = " ";
+        
+        console.log(rows)
+        let i = 1;
+
+        rows.forEach(row => {
+            let tr = document.createElement("tr");
+            tr.setAttribute("value", "row" + i)
+            tr.setAttribute("class", "row" + i)
+            table.appendChild(tr);
+            let c = 1;
+            for(let x = 0; x < row.length; x++){
+                // table
+                let colSelected = false;
+               
+                let td = document.createElement("td");
+                let data = row[x];
+                td.textContent = data;
+                td.setAttribute("name", "column" + c)
+                td.setAttribute("value", data)
+                td.setAttribute("onclick", "getColNum("+ c +")");
+                tr.appendChild(td);
+
+                td.addEventListener("click", ()=>{
+                    tr.style.borderColor = "red"
+                })
+                // column data
+                // console.log(row[x] + " " + c)
+                // console.log(i)
+                c++
+
+               
+                
+
+            }
+            i++
+            
+           
+          
+
+
+        });
+
+// console.log(i)
+
+
+      // `rows` is an array of rows
+      // each row being an array of cells.
+    })
+  })
+</script>
+</body>
+</html>
