@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Processing</title>
+    <script src="https://unpkg.com/read-excel-file@5.x/bundle/read-excel-file.min.js"></script>
+</head>
+<style>
+    table{
+        border-spacing: 0px;
+    }
+    table, td,th, .deselected{
+        border-style: solid;
+        border-width: 1.5px;
+        font-size: 12px;
+        cursor: pointer;
+        border-color: #33333327;
+        color: #333333cf;
+        transition-duration: 0.3s;
+        transition-timing-function: ease-in-out;
+    }
+    td, tr{
+        padding-left: 3px;
+        
+    }
+    td:hover{
+        background-color: rgba(128, 128, 128, 0.134);
+    }
+    .selected-column{
+        border-color: #7676ff;
+        font-size: 13px;
+        border-width: 2px;
+        font-weight: 500;
+    }
+    .selected-col-tool-tip{
+        text-align: center;
+
+    }
+    .selected-col-tool-tip .si-caret-down{
+        transform:translateY(0px);
+        font-size: 25px;
+        color: #7676ff;
+        animation: selected 2s infinite;
+        animation-timing-function: ease-in-out;
+    }
+    .selected{
+        width: auto;
+        height: auto;
+        padding: 5px;
+        border-style: solid;
+        border-width: 1px;
+        font-size: 12px;
+        margin: 1px;
+        border-radius: 3px;
+        background-color: #7676ff;
+        color: #fff;
+        border-color: #7676ff;
+    }
+    @keyframes selected{
+        0%,
+        50%{
+            transform: translateY(0px)
+        }
+        100%{
+            transform: translateY(2px);
+        }
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/siimple-icons/siimple-icons.css" />
+<body>
+<input type="file" id="input" accept=".xlsx">
+
+<table id="excel-table">
+
+<!-- <div class="selected-col-tool-tip">
+    <div class="selected">Selected</div>
+    <i class="si-caret-down"></i>
+</div> -->
+
+</table>
+
+
+
+
+<script>
+const worker = new worker("process-column-data.js");
+
+
+
+
+
+
+
+
+
+
+
+
+  var input = document.getElementById('input')
+  let table = document.getElementById("excel-table")
+
+  let columnData = []
+  let numericData = []
+  function getColNum(col){
+       
+    let selected = true;
+
+        columnData = []
+        
+        // style all tags
+        let allCol = document.getElementsByTagName("td");
+        for (let xi of allCol) {
+            let tag = xi;
+            tag.style.borderColor = "#33333327";
+            tag.style.color = "#333333cf";
+            tag.style.backgroundColor = "#fff"
+        }
+        
+       
+            // remove selected tool tip
+            let iconTabId = document.getElementById("icon-tab")
+            console.log(typeof(iconTabId))
+            if(iconTabId){
+                iconTabId.remove()
+                // console.log(iconTabId)
+            }else{
+                console.log("not found")
+            }
+
+
+             // create selected icon
+            let iconTab = document.createElement("div");
+            iconTab.setAttribute("class", "selected-col-tool-tip")
+            iconTab.setAttribute("id", "icon-tab")
+            let iconText = document.createElement("div")
+            iconText.setAttribute("class", "selected")
+            iconText.textContent = "Selected";
+
+            let icon = document.createElement("i")
+            icon.setAttribute("class", "si-caret-down")
+
+            iconTab.appendChild(iconText)
+            iconTab.appendChild(icon)
+
+        // selected column
+        let cols = document.getElementsByName("column" + col)
+        for (let [index, x] of cols.entries()) {
+           
+           
+            
+
+
+
+
+            let tag = x;
+            // console.log(tag)
+            // add top tooltip
+            if(index == 1){
+                tag.style.borderTopColor = "#7676ff";
+                tag.appendChild(iconTab)
+                // table.insertBefore(iconTab,)
+            }
+            
+
+
+            // style selected tag
+            // tag.style.borderColor = "#7676ff"
+            tag.style.borderStyle = "solid";
+            tag.style.borderLeftColor = "#7676ff";
+            tag.style.borderRightColor = "#7676ff";
+            tag.style.color = "#222";
+            tag.style.backgroundColor = "#dedeff"
+            // tag.setAttribute("class", "selected-column")
+                // data
+                let value = parseInt(tag.textContent);
+                if(isNaN(value)){
+                    // console.log("not a number")
+                }else{
+                    columnData.push(value)
+                }
+        }
+    //   console.log(columnData)
+       
+    }
+
+
+
+
+  input.addEventListener('change', function() {
+    readXlsxFile(input.files[0]).then(function(rows) {
+        table.innerHTML = " ";
+        
+        console.log(rows)
+        let i = 1;
+
+        rows.forEach(row => {
+            let tr = document.createElement("tr");
+            tr.setAttribute("value", "row" + i)
+            tr.setAttribute("class", "row" + i)
+            table.appendChild(tr);
+            let c = 1;
+            for(let x = 0; x < row.length; x++){
+                // table
+                let colSelected = false;
+               
+                let td = document.createElement("td");
+                let data = row[x];
+                td.textContent = data;
+                td.setAttribute("name", "column" + c)
+                td.setAttribute("value", data)
+                td.setAttribute("onclick", "getColNum("+ c +")");
+                tr.appendChild(td);
+
+                td.addEventListener("click", ()=>{
+                    
+                })
+                // column data
+                // console.log(row[x] + " " + c)
+                // console.log(i)
+                c++
+
+               
+                
+
+            }
+            i++
+            
+           
+          
+
+
+        });
+
+// console.log(i)
+
+
+      // `rows` is an array of rows
+      // each row being an array of cells.
+    })
+  })
+</script>
+</body>
+</html>
