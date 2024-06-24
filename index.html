@@ -35,7 +35,7 @@
     }
     .selected-col-tool-tip{
         text-align: center;
-
+        position: relative;
     }
     .selected-col-tool-tip .si-caret-down{
         transform:translateY(0px);
@@ -66,58 +66,179 @@
             transform: translateY(2px);
         }
     }
+    .loading-modal{
+        position: fixed;
+        display: none;
+        width: 100vw;
+        height: 100vh;
+        background-color: #fff;
+    }
+    .loading-modal img{
+        margin-top: 30vh;
+    }
+    .loading-text{
+        color: #1866e2;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .loading-modal .close{
+        color: #1866e2;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        position: absolute;
+        right: 50px;
+        top: 20px;
+        cursor: pointer;
+        width: auto;
+        height: auto;
+        padding: 5px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 5px;
+        transition-duration: 0.3s;
+}
+.loading-modal .close:hover{
+    background-color: #efefff;
+}
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/siimple-icons/siimple-icons.css" />
 <body>
+<center>
+    <div class="loading-modal" id="loading-modal">
+        <div class="close" id="closeModalBtn">close</div>
+        <img src="loading-gif.gif" alt="" width="170px">
+        <div class="loading-text" id="loading-text">loading</div>
+    </div>
+</center>
+   
+
+
 <input type="file" id="input" accept=".xlsx">
 
-<table id="excel-table">
+<table id="excel-table"></table>
 
-<!-- <div class="selected-col-tool-tip">
-    <div class="selected">Selected</div>
-    <i class="si-caret-down"></i>
-</div> -->
-
-</table>
 
 
 
 
 <script>
-const worker = new worker("process-column-data.js");
-
-
-
-
-
-
-
-
-
-
-
-
-  var input = document.getElementById('input')
+ var input = document.getElementById('input')
   let table = document.getElementById("excel-table")
+  let modal = document.getElementById("loading-modal");
+  let modalText = document.getElementById("loading-text");
+  let Fileloaded = false;
+
+async function showModal(loading){
+    modal.style.display = "block";
+    modalText.textContent = loading;
+    console.log("loading")
+}
+function closeModal(a){
+        modal.style.display = "none";
+        console.log("complete")
+}
+
+  
+document.getElementById("closeModalBtn").addEventListener("click", ()=>{
+    modal.style.display = "none";
+})
+
+
+ 
+
+    table.addEventListener("click", ()=>{
+        // modal.style.display = "block";
+    })
 
   let columnData = []
-  let numericData = []
-  function getColNum(col){
-       
-    let selected = true;
+  let allData = []
+  let unParsedNumData = []
 
-        columnData = []
+
+
+
+
+  input.addEventListener("click", ()=>{
+    showModal("Importing data - Choose a file");
+  })
+  input.addEventListener('change', ()=>{
+    try{
+    readXlsxFile(input.files[0]).then(function(rows) {
+      
         
+        table.innerHTML = " ";
+        modalText.textContent = "Loading - 10%";
+        console.log(rows)
+        let i = 1;
+
+        rows.forEach(row => {
+          
+            let tr = document.createElement("tr");
+            tr.setAttribute("value", "row" + i)
+            tr.setAttribute("class", "row" + i)
+            table.appendChild(tr);
+            let c = 1;
+            modalText.textContent = "Processing Data";
+            for(let x = 0; x < row.length; x++){
+                // table
+                let colSelected = false;
+               
+                let td = document.createElement("td");
+                let data = row[x];
+                td.textContent = data;
+                td.addEventListener("click", ()=>{
+                //    showModal("Fetching")
+                })
+                modalText.textContent = "Loading - 53%";
+                td.setAttribute("name", "column" + c)
+                td.setAttribute("value", data)
+                td.setAttribute("onclick", "getColNum("+ c +")");
+                tr.appendChild(td);
+
+                
+                // column data
+                // console.log(row[x] + " " + c)
+                // console.log(i)
+                c++
+
+               
+                
+
+            }
+            i++ 
+            modalText.textContent = "Loading complete - 100%";
+        });
+        Fileloaded = true;
+        setTimeout(closeModal(Fileloaded),1000)
+        
+// console.log(i)
+
+
+      // `rows` is an array of rows
+      // each row being an array of cells.
+  
+    })
+        
+    }catch(e){
+        console.log("no file")
+    }
+    // modal.style.display = "none";
+  })
+
+
+  function getColNum(col){
+    columnData = []
+    allData = []
+    unParsedNumData = []
         // style all tags
         let allCol = document.getElementsByTagName("td");
         for (let xi of allCol) {
+           
             let tag = xi;
             tag.style.borderColor = "#33333327";
             tag.style.color = "#333333cf";
             tag.style.backgroundColor = "#fff"
         }
-        
-       
+            // modal
+
             // remove selected tool tip
             let iconTabId = document.getElementById("icon-tab")
             console.log(typeof(iconTabId))
@@ -125,10 +246,8 @@ const worker = new worker("process-column-data.js");
                 iconTabId.remove()
                 // console.log(iconTabId)
             }else{
-                console.log("not found")
+                console.log("no column was selected")
             }
-
-
              // create selected icon
             let iconTab = document.createElement("div");
             iconTab.setAttribute("class", "selected-col-tool-tip")
@@ -137,31 +256,32 @@ const worker = new worker("process-column-data.js");
             iconText.setAttribute("class", "selected")
             iconText.textContent = "Selected";
 
+           
+            // modal
+        
+
             let icon = document.createElement("i")
             icon.setAttribute("class", "si-caret-down")
+
+            
 
             iconTab.appendChild(iconText)
             iconTab.appendChild(icon)
 
+       
         // selected column
         let cols = document.getElementsByName("column" + col)
         for (let [index, x] of cols.entries()) {
-           
-           
-            
-
-
-
-
+            modalText.textContent = "Cleaning data - " + index + " cells";
             let tag = x;
             // console.log(tag)
             // add top tooltip
-            if(index == 1){
+            if(index == 0){
                 tag.style.borderTopColor = "#7676ff";
                 tag.appendChild(iconTab)
-                // table.insertBefore(iconTab,)
+                 // modal.style.display = "block";
             }
-            
+         
 
 
             // style selected tag
@@ -176,69 +296,36 @@ const worker = new worker("process-column-data.js");
                 let value = parseInt(tag.textContent);
                 if(isNaN(value)){
                     // console.log("not a number")
+                    unParsedNumData.push(tag.textContent)
                 }else{
                     columnData.push(value)
+                    // modal
+                }
+                // all data
+                allData.push(tag.textContent)
+                
+
+                    // modal
+                let lastItem = cols.length - 1;
+                if(lastItem == index){
+                    modal.style.display = "none";
+                    console.log(lastItem)
                 }
         }
     //   console.log(columnData)
-       
+    iconTab.addEventListener("click", ()=>{
+        // next step
+                // console.log(columnData)
+                let dataSetOne = {
+                    allData: allData,
+                    columnData: columnData,
+                    unParsedNumData: unParsedNumData,
+                }
+                console.log(dataSetOne)
+            })
+                   
     }
 
-
-
-
-  input.addEventListener('change', function() {
-    readXlsxFile(input.files[0]).then(function(rows) {
-        table.innerHTML = " ";
-        
-        console.log(rows)
-        let i = 1;
-
-        rows.forEach(row => {
-            let tr = document.createElement("tr");
-            tr.setAttribute("value", "row" + i)
-            tr.setAttribute("class", "row" + i)
-            table.appendChild(tr);
-            let c = 1;
-            for(let x = 0; x < row.length; x++){
-                // table
-                let colSelected = false;
-               
-                let td = document.createElement("td");
-                let data = row[x];
-                td.textContent = data;
-                td.setAttribute("name", "column" + c)
-                td.setAttribute("value", data)
-                td.setAttribute("onclick", "getColNum("+ c +")");
-                tr.appendChild(td);
-
-                td.addEventListener("click", ()=>{
-                    
-                })
-                // column data
-                // console.log(row[x] + " " + c)
-                // console.log(i)
-                c++
-
-               
-                
-
-            }
-            i++
-            
-           
-          
-
-
-        });
-
-// console.log(i)
-
-
-      // `rows` is an array of rows
-      // each row being an array of cells.
-    })
-  })
 </script>
 </body>
 </html>
