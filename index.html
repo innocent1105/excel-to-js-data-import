@@ -9,6 +9,7 @@
 <style>
     table{
         border-spacing: 0px;
+        width:auto;
     }
     table, td,th, .deselected{
         border-style: solid;
@@ -100,12 +101,16 @@
 }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/siimple-icons/siimple-icons.css" />
+<link rel="stylesheet" href="column.css" />
+
 <body>
 <center>
     <div class="loading-modal" id="loading-modal">
         <div class="close" id="closeModalBtn">close</div>
         <img src="loading-gif.gif" alt="" width="170px">
         <div class="loading-text" id="loading-text">loading</div>
+        <div class="loading-text" id="loading-text2"></div>
+
     </div>
 </center>
    
@@ -113,36 +118,75 @@
 
 <input type="file" id="input" accept=".xlsx">
 
-<table id="excel-table"></table>
 
+<div class="column-select-tab">
+    <div class="t-header">Columns selected</div>
+    <div class="t-text">Select 1 or 2 columns to make a dataset.
+         One column should be the date/time set and one as the 
+         main dataset to be forecast. Precision automatically creates
+         a timeline with or without the date/time column, thus the 
+         column only acting as a label.
+    </div>
+    <div class="dataset">
+       <div class="column-1" id="column-1">
+        <div class="col-text" id="column-1-text">Column 1</div>
+        
+       </div>
+       <div class="column-2" id="column-2">
+        <div class="col-text" id="column-2-text">Column 2</div>
 
+       </div>
+    </div>
 
+    <div class="btm-actions">
+        <button class="reset-btn" id="reset-ds-btn">Reset dataset</button>
+        <button class="nxt-btn" id="next-btn">Next</button>
+    </div>
+</div>
 
+<div class="dataset-preview">
+    <div class="t-text">Select two columns from this table. 
+        One column to forecast, one acting as the time frame.
+    </div>
+    <br>
+    <div class="ds-table">
+        <table id="excel-table"></table>
+    </div>
+    
+</div>
 
 <script>
  var input = document.getElementById('input')
   let table = document.getElementById("excel-table")
   let modal = document.getElementById("loading-modal");
   let modalText = document.getElementById("loading-text");
-  let Fileloaded = false;
+  let modalText2 = document.getElementById("loading-text2");
 
+  let Fileloaded = false;
+  let loadText = "";
 async function showModal(loading){
     modal.style.display = "block";
-    modalText.textContent = loading;
-    console.log("loading")
+    // modalText.textContent = loading;
+    // console.log("loading")
 }
-function closeModal(a){
+function closeModal(a,b){
         modal.style.display = "none";
+        modalText.textContent = b;
         console.log("complete")
 }
-
+async function loadingText(text){
+    if(loadText == ""){
+        modalText2.innerHTML = text;
+        loadText = text;
+    }else{
+        modalText2.innerHTML = text;
+        loadText = text;
+    }
+}
   
 document.getElementById("closeModalBtn").addEventListener("click", ()=>{
     modal.style.display = "none";
 })
-
-
- 
 
     table.addEventListener("click", ()=>{
         // modal.style.display = "block";
@@ -158,6 +202,7 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
 
   input.addEventListener("click", ()=>{
     showModal("Importing data - Choose a file");
+    loadingText("loading, please wait...")
   })
   input.addEventListener('change', ()=>{
     try{
@@ -165,7 +210,9 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
       
         
         table.innerHTML = " ";
-        modalText.textContent = "Loading - 10%";
+        loadingText("Fetching data, please wait.")
+        
+
         console.log(rows)
         let i = 1;
 
@@ -176,7 +223,8 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
             tr.setAttribute("class", "row" + i)
             table.appendChild(tr);
             let c = 1;
-            modalText.textContent = "Processing Data";
+          
+
             for(let x = 0; x < row.length; x++){
                 // table
                 let colSelected = false;
@@ -185,18 +233,15 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
                 let data = row[x];
                 td.textContent = data;
                 td.addEventListener("click", ()=>{
-                //    showModal("Fetching")
+                    // showModal("Fetching") 
+                    // modalText.textContent = "Fetching Column data";
+
                 })
                 modalText.textContent = "Loading - 53%";
                 td.setAttribute("name", "column" + c)
                 td.setAttribute("value", data)
                 td.setAttribute("onclick", "getColNum("+ c +")");
                 tr.appendChild(td);
-
-                
-                // column data
-                // console.log(row[x] + " " + c)
-                // console.log(i)
                 c++
 
                
@@ -204,17 +249,10 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
 
             }
             i++ 
-            modalText.textContent = "Loading complete - 100%";
+            loadingText("Loading comlete")
         });
         Fileloaded = true;
-        setTimeout(closeModal(Fileloaded),1000)
-        
-// console.log(i)
-
-
-      // `rows` is an array of rows
-      // each row being an array of cells.
-  
+        setTimeout(closeModal(Fileloaded,"Loaded..."),1000)
     })
         
     }catch(e){
@@ -223,7 +261,7 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
     // modal.style.display = "none";
   })
 
-
+  var activeColNum = 1;
   function getColNum(col){
     columnData = []
     allData = []
@@ -241,7 +279,7 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
 
             // remove selected tool tip
             let iconTabId = document.getElementById("icon-tab")
-            console.log(typeof(iconTabId))
+            // console.log(typeof(iconTabId))
             if(iconTabId){
                 iconTabId.remove()
                 // console.log(iconTabId)
@@ -254,7 +292,7 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
             iconTab.setAttribute("id", "icon-tab")
             let iconText = document.createElement("div")
             iconText.setAttribute("class", "selected")
-            iconText.textContent = "Selected";
+            iconText.innerText = "Select";
 
            
             // modal
@@ -309,23 +347,88 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
                 let lastItem = cols.length - 1;
                 if(lastItem == index){
                     modal.style.display = "none";
-                    console.log(lastItem)
+                    // console.log(lastItem)
                 }
         }
     //   console.log(columnData)
+ 
+
     iconTab.addEventListener("click", ()=>{
-        // next step
+        
+            let col1 = document.getElementById("column-1"),
+                col2 = document.getElementById("column-2");
+            let col1Text = document.getElementById("column-1-text"),
+                col2Text = document.getElementById("column-2-text");
+            let color = "#e4e5ff";
+            let colHeader = allData[0].replace("Select", " ");
+            allData[0] = colHeader;
                 // console.log(columnData)
                 let dataSetOne = {
                     allData: allData,
-                    columnData: columnData,
+                    timeseries: columnData,
                     unParsedNumData: unParsedNumData,
                 }
-                console.log(dataSetOne)
+                function SelectedCol(activeColumn,colText,data){
+                    iconTab.innerHTML = " "
+                    iconTab.innerHTML = "Selected"
+                    // console.log("selected");
+                    // colText.textContent = allData[0];
+                    // display data
+                    activeColumn.setAttribute("class", "active-column")
+                    // console.clear()
+                }
+
+                function createDataColoumn(sCol){
+                    // clean col
+                    sCol.innerHTML = " ";
+                    // data
+                    for(let v = 0; v < allData.length; v++){
+                        let iTag = document.createElement("input");
+                        iTag.value = allData[v];
+                        console.log(allData[v]);
+                        sCol.appendChild(iTag);
+                        if(v == 0){
+                            iTag.setAttribute("class","active-col-cell");
+                        }
+                    }
+                    
+                }
+                if(activeColNum == 1){
+                    // activeCol = 1
+                    SelectedCol(col1,col1Text,allData)
+                    col1.style.backgroundColor = color;
+                    col2.style.backgroundColor = "#fff";
+                    activeColNum = 2;
+                    console.log(activeColNum)
+
+                    // append
+                    createDataColoumn(col1);
+                }else if(activeColNum == 2){
+                    // activeCol = 2
+                    SelectedCol(col2,col2Text,allData)
+                    col2.style.backgroundColor = color;
+                    col1.style.backgroundColor = "#fff";
+                    activeColNum = 1;
+                    console.log(activeColNum)
+
+                    // append
+                    createDataColoumn(col2);
+                }else{
+                    console.log("error")
+                }
+                // console.log(dataSetOne)
             })
                    
     }
 
+    document.getElementById("reset-ds-btn").addEventListener("click", ()=>{
+        document.getElementById("column-1").innerHTML = "";
+        document.getElementById("column-2").innerHTML = "";
+    })
+    document.getElementById("next-btn").addEventListener("click", ()=>{
+        showModal("Importing data - Choose a file");
+        loadingText("cleaning data...")
+    })
 </script>
 </body>
 </html>
