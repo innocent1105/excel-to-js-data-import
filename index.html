@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Processing</title>
+    <!-- <script src="https://unpkg.com/localbase/dist/localbase.min.js"></script> -->
     <script src="https://unpkg.com/read-excel-file@5.x/bundle/read-excel-file.min.js"></script>
 </head>
 <style>
@@ -162,8 +163,16 @@
   let modalText = document.getElementById("loading-text");
   let modalText2 = document.getElementById("loading-text2");
 
+  let columnsEmpty = true;
+
   let Fileloaded = false;
   let loadText = "";
+
+// disable next btn
+document.getElementById("next-btn").disabled  = true;
+console.log(true)
+
+
 async function showModal(loading){
     modal.style.display = "block";
     // modalText.textContent = loading;
@@ -195,9 +204,6 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
   let columnData = []
   let allData = []
   let unParsedNumData = []
-
-
-
 
 
   input.addEventListener("click", ()=>{
@@ -352,7 +358,8 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
         }
     //   console.log(columnData)
  
-
+// column state management
+   
     iconTab.addEventListener("click", ()=>{
         
             let col1 = document.getElementById("column-1"),
@@ -403,6 +410,9 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
 
                     // append
                     createDataColoumn(col1);
+
+                    // column state management
+                   
                 }else if(activeColNum == 2){
                     // activeCol = 2
                     SelectedCol(col2,col2Text,allData)
@@ -413,14 +423,67 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
 
                     // append
                     createDataColoumn(col2);
-                }else{
-                    console.log("error")
-                }
-                // console.log(dataSetOne)
-            })
-                   
-    }
 
+                    // column state management
+                    columnsEmpty = false;
+                }else{
+                    console.log("error - failed to detect column")
+                }
+            })
+           
+            if(columnsEmpty == false){
+                document.getElementById("next-btn").disabled  = false;
+                console.log(false)
+            }
+    }
+   
+
+
+let column1Dataset = [];
+let column2Dataset = [];
+function getColumnsData(){
+    column1Dataset = [];
+    column2Dataset = [];
+    console.clear()
+    let column1 = document.getElementById("column-1"),
+        column2 = document.getElementById("column-2");
+    let Col1tags = column1.getElementsByTagName("input");
+    for(colTag of Col1tags){
+        column1Dataset.push(colTag.value)
+    }
+    console.log("column 1 complete", column1Dataset)
+
+
+    let Col2tags = column2.getElementsByTagName("input");
+    for(colTag of Col2tags){
+        column2Dataset.push(colTag.value)
+    }
+    console.log("column 2 complete", column2Dataset)
+}
+
+function storeInFrontBase(){
+    let db = new Localbase('frontbase')
+    let date = new Date();
+    
+    function todaysDate(){
+        console.log(date);
+    }
+    todaysDate();
+    
+    db.collection('project-data').add({
+        id: 1,
+        projectName: 'Forecast',
+        date: date,
+        dataset: "column1",
+        column1: column1Dataset,
+        column2: column2Dataset,
+        allData: column1Dataset.concat(column2Dataset),
+        unParsedNumData: unParsedNumData,
+        forecastModel: "default"
+    })
+}
+
+     
     document.getElementById("reset-ds-btn").addEventListener("click", ()=>{
         document.getElementById("column-1").innerHTML = "";
         document.getElementById("column-2").innerHTML = "";
@@ -428,7 +491,21 @@ document.getElementById("closeModalBtn").addEventListener("click", ()=>{
     document.getElementById("next-btn").addEventListener("click", ()=>{
         showModal("Importing data - Choose a file");
         loadingText("cleaning data...")
+
+        try{
+            getColumnsData();
+            // storeInFrontBase()
+            console.info("Successfully installed.");
+        }catch(err){
+            console.error(err)
+        }
+       
     })
+</script>
+<script src="./js/localbase.js"></script>
+<script>
+
+
 </script>
 </body>
 </html>
