@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/read-excel-file@5.x/bundle/read-excel-file.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<style>
+    table, td, tr, th{
+        border-style: solid;
+        border-style: solid;
+    border-width: 1.5px;
+    font-size: 12px;
+    cursor: pointer;
+    border-color: #33333327;
+    color: #1a1919;
+    }
+    tr{
+        margin: 5px;
+        border-style: solid;
+        border-color: black;
+    }
+.tooltiptext{
+    display: block;
+    position: absolute;
+    border-style: solid;
+    background-color: blueviolet;
+    color: #fff;
+    padding: 10px;
+}
+</style>
+<body>
+    <input type="file" id="input" accept=".xlsx">
+    <table id="table">
+    </table>
+    <script>
+function createElement(tag){
+    return ()=>{
+        return document.createElement(tag);
+    }
+}
+
+function timeCheck(){
+    console.time();
+}
+
+function loadingPercentage(lengthOfLoop,indexValue){
+    let Percent = indexValue / lengthOfLoop * 100;
+    // console.clear();
+    let loadingText = Percent + "% loading";
+    console.log(loadingText);
+}
+
+let cell = createElement("tr");
+let excelColumns = [];
+let finalDataColumns = [];
+let x = 0;
+input.addEventListener('change', ()=>{
+    excelColumns = [];
+    finalDataColumns = [];
+    // table cleaning
+    let table = document.getElementById("table");
+    table.innerHTML = " ";
+    try{
+       
+    readXlsxFile(input.files[0]).then(function(rows) {
+       
+       let counter = 0;
+        console.time();
+            rows.forEach(row => {
+                let tr = createElement("tr"),
+                cellValue = row,
+                rowCell = tr();
+                table.appendChild(rowCell);
+
+                for(x = 0; x < row.length; x++){
+                    // console.log(x)
+                    let cell = createElement("td");
+                    td = cell();
+                    td.innerHTML = row[x];
+                    td.setAttribute("name", x)
+                    
+                    
+                    let column = [];
+                    function collectColumnData(){
+                            
+                            let span = createElement("span");
+                                span = span();
+
+                                // console.log("td")
+                                let cols = document.getElementsByName(x)
+                                for(let a = 0; a < cols.length; a++){
+                                    let col = cols[a];
+                                    let colValue = col.innerHTML;
+
+                                    column.push(colValue);
+
+                                    loadingPercentage(cols.length, a)
+                                }
+
+                                excelColumns.push(column);
+                        }
+
+                        collectColumnData()
+                       
+                    rowCell.appendChild(td);
+                    rowCell.addEventListener("click", ()=>{
+                        // rowCell.style.backgroundColor = "blue";
+                    })
+                   
+                }
+                counter++;
+
+            })   
+            console.timeEnd();
+
+            let vd = excelColumns.length - x;
+            let mainCols = excelColumns.length - vd;
+            for(let v = 0; v < mainCols; v++){
+                let colX = excelColumns[vd];
+                finalDataColumns.push(colX)
+                vd++;
+            }
+            
+            console.log(finalDataColumns)
+    })
+        
+    }catch(e){
+        console.log("no file")
+    }
+  })
+    </script>
+</body>
+</html>
